@@ -1,0 +1,61 @@
+ARIMA for Prediction and Forecasting
+
+
+library(utils)
+library(ggplot2)
+library(plotly)
+library(tseries)
+library(zoo)
+library(forecast)
+library(prediction)
+library(sqldf)
+library(lubridate)
+
+getwd()
+setwd("C:\\R\\instant insights\\")
+getwd()
+
+# import the data
+incdata <- read.csv("Incident Data.csv",  stringsAsFactors = FALSE)
+#head(incdata)
+#View(incdata)
+
+# read data as a time series data
+tsdata1 = ts(incdata$INCIDENT_COUNT)
+#length(tsdata1)
+plot.ts(tsdata1)
+
+# Check the data is stationary or not (if p-value is less than 0.05 then data is stationary)
+adf.test(incdata$INCIDENT_COUNT , alternative = "stationary")
+
+# make stationary data by using diff function
+tsdata1_diff1 <- diff(tsdata1, differences = 1)
+plot.ts(tsdata1_diff1)
+
+tsdata1_diff2 <- diff(tsdata1, differences = 2)
+plot.ts(tsdata1_diff2)
+
+# Find the ACF (MA/q) lags
+acf(tsdata1)
+
+# Find the PACF (AR/p) lags
+pacf(tsdata1)
+
+# Developing an ARIMA model and Analyze P,d, q orders
+agingtkt_model <- arima(tsdata1, order = c(0,0,0))
+agingtkt_model
+
+# Developing an ARIMA model using auto.arima() builtin funcation
+agingtkt_auto_arima_model  <- auto.arima(tsdata1)
+agingtkt_auto_arima_model
+
+# Residual Diagonostic checking
+# P values 0.6305 is grater than 0.05 so it is best fit model for forecasting
+Box.test(agingtkt_auto_arima_model$residuals, lag=20, type="Ljung-Box")
+
+agingtkt_forecast <- forecast(agingtkt_auto_arima_model, h= 4)
+agingtkt_forecast
+
+plot(agingtkt_forecast , main = "Predictive Analytics for Aging Ticket")
+summary(agingtkt_model)
+accuracy(agingtkt_model)
